@@ -1,0 +1,39 @@
+#
+# bump-date.yml
+# Bump the distribution date once per day
+#
+
+name: Bump Distribution Date
+
+on:
+  schedule:
+    - cron: '0 12 */2 * *'
+
+jobs:
+  bump_date:
+    name: Bump Distribution Date
+    if: github.repository == 'classicrocker883/MriscocProUI'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Check out 2023-July
+      uses: actions/checkout@v3
+      with:
+        ref: 2023-July
+
+    - name: Bump Date (2023-July)
+      run: |
+        # Inline Bump Script
+        if [[ ! "$( git log -1 --pretty=%B )" =~ ^\[cron\] ]]; then
+          DIST=$( date +"%Y-%m-%d" )
+          eval "sed -E -i 's/(#define +STRING_DISTRIBUTION_DATE) .*$/\1 \"$DIST\"/g' Marlin/src/inc/Version.h" && \
+          eval "sed -E -i 's/(//#define +STRING_DISTRIBUTION_DATE) .*$/\1 \"$DIST\"/g' Marlin/Version.h" && \
+          git config user.name "classicrocker883" && \
+          git config user.email "andrewleduc88@yahoo.com" && \
+          git add . && \
+          git commit -m "[cron] Bump distribution date ($DIST)" && \
+          git push
+        fi
+        exit 0
